@@ -136,8 +136,29 @@ async function run() {
               classId: id,
               userMail: email
             };
-            projection: {classId: 1};
+            const projection = {classId: 1};
             const result = await cartCollection.findOne(query, {projection: projection});
+            res.send(result);
+        })
+
+        // cart info by user email
+        app.get('/cart/:email', async(req,res) => {
+          const email = req.params.email;
+          const query = {userMail: email};
+          const projection = {classId: 1};
+          const carts = await cartCollection.find(query, {projection : projection});
+          const classIds = carts.map((cart) => new ObjectId(cart.classId));
+          const query2 = {_id: {$in: classIds}};
+          const result = await classCollection.find(query2).toArray();
+          res.send(result);
+        })
+
+        // delete cart items
+        app.delete('/delete-item/:id', async(req,res) => {
+          const id = req.params.id;
+          const  query = {classId:  id};
+          const result = await cartCollection.deleteOne(query);
+          res.send(result);
         })
 
     // Send a ping to confirm a successful connection
